@@ -26,13 +26,13 @@ export interface TerraformCredentialsFile {
   credentials: TerraformCredentials;
 }
 
-const zipDirectory = (source: string): Promise<Buffer | false> => {
+const zipDirectory = (source: string, ignoreGlobs: string[]): Promise<Buffer | false> => {
   const archive = archiver('tar', { gzip: true });
   const stream = new WritableStreamBuffer()
 
   return new Promise((resolve, reject) => {
     archive
-      .directory(source, false)
+      .glob(source + path.sep + "**", { ignore: ignoreGlobs })
       .on('error', err => reject(err))
       .on('end', () => resolve(stream.getContents()))
       .pipe(stream)
@@ -127,7 +127,7 @@ export class TerraformCloud implements Terraform {
 
     this.configurationVersionId = version.id
 
-    const zipBuffer = await zipDirectory(this.workDir)
+    const zipBuffer = await zipDirectory(this.workDir, [".terraform"])
     if (!zipBuffer) throw new Error("Couldn't upload directory to Terraform Cloud");
 
     await this.client.ConfigurationVersion.upload(version.attributes.uploadUrl, zipBuffer)
