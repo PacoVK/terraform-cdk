@@ -11,7 +11,7 @@ test('generate some modules', async () => {
   const workdir = fs.mkdtempSync(path.join(os.tmpdir(), 'module-generator.test'));
   const constraint = new TerraformModuleConstraint('terraform-aws-modules/eks/aws@7.0.1')
 
-  const maker = new ConstructsMaker({codeMakerOutput: workdir, targetLanguage: Language.TYPESCRIPT}, [constraint])
+  const maker = new ConstructsMaker({codeMakerOutput: workdir, targetLanguage: Language.TYPESCRIPT, upgrade: false}, [constraint])
   await maker.generate()
 
   const output = fs.readFileSync(path.join(workdir, 'modules/terraform-aws-modules/eks/aws.ts'), 'utf-8');
@@ -28,10 +28,10 @@ test('generate multiple aws modules', async () => {
   jest.setTimeout(120000);
 
   const workdir = fs.mkdtempSync(path.join(os.tmpdir(), 'module-generator-aws.test'));
-  const constraints = [new TerraformModuleConstraint('terraform-aws-modules/vpc/aws@2.78.0'), 
+  const constraints = [new TerraformModuleConstraint('terraform-aws-modules/vpc/aws@2.78.0'),
     new TerraformModuleConstraint('terraform-aws-modules/rds-aurora/aws@4.1.0')];
 
-  const maker = new ConstructsMaker({codeMakerOutput: workdir, targetLanguage: Language.TYPESCRIPT}, constraints);
+  const maker = new ConstructsMaker({codeMakerOutput: workdir, targetLanguage: Language.TYPESCRIPT, upgrade: false}, constraints);
   await maker.generate();
 
   const vpcOutput = fs.readFileSync(path.join(workdir, 'modules/terraform-aws-modules/vpc/aws.ts'), 'utf-8');
