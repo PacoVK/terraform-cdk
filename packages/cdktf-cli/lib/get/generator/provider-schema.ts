@@ -202,9 +202,9 @@ export async function readSchema(targets: ConstructsMakerTarget[], upgrade: bool
     const filePath = path.join(outdir, 'main.tf.json');
     await fs.writeFile(filePath, JSON.stringify(config));
 
-    const tf_init_args = upgrade ? [ 'init', '-upgrade' ] : [ 'init' ];
+    const tfInitArgs = upgrade ? [ 'init', '-upgrade' ] : [ 'init' ];
 
-    await exec(terraformBinaryName, tf_init_args, { cwd: outdir });
+    await exec(terraformBinaryName, tfInitArgs, { cwd: outdir });
     if (config.provider) {
       providerSchema = JSON.parse(await exec(terraformBinaryName, ['providers', 'schema', '-json'], { cwd: outdir })) as ProviderSchema;
     }
