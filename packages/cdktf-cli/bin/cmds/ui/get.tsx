@@ -14,16 +14,18 @@ enum Status {
 interface GetConfig {
     codeMakerOutput: string;
     language: Language;
+    upgrade: boolean;
     constraints: TerraformDependencyConstraint[];
 }
 
-export const Get = ({ codeMakerOutput, language, constraints }: GetConfig): React.ReactElement => {
+export const Get = ({ codeMakerOutput, language, upgrade, constraints }: GetConfig): React.ReactElement => {
     const [currentStatus, setCurrentStatus] = React.useState<Status>(Status.STARTING);
     const { exit } = useApp();
 
     const constructsOptions: GetOptions = {
         codeMakerOutput: codeMakerOutput,
         targetLanguage: language,
+        upgrade: upgrade
     }
 
     React.useEffect(() => {

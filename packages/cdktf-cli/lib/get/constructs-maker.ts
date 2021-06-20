@@ -26,6 +26,7 @@ export const LANGUAGES = [ Language.TYPESCRIPT, Language.PYTHON, Language.JAVA, 
 export interface GetOptions {
   readonly targetLanguage: Language;
   readonly codeMakerOutput: string;
+  readonly upgrade: boolean;
   /**
    * Path to copy the output .jsii file.
    * @default - jsii file is not emitted
@@ -182,16 +183,18 @@ export class ConstructsMaker {
   private readonly codeMakerOutdir: string;
   private readonly code: CodeMaker;
   private readonly targets: ConstructsMakerTarget[];
+  private readonly upgrade: boolean;
 
   constructor(private readonly options: GetOptions, private readonly constraints: TerraformDependencyConstraint[]) {
     this.codeMakerOutdir = path.resolve(this.options.codeMakerOutput);
     fs.mkdirpSync(this.codeMakerOutdir);
     this.code = new CodeMaker();
-    this.targets = this.constraints.map(constraint => ConstructsMakerTarget.from(constraint, this.options.targetLanguage))
+    this.targets = this.constraints.map(constraint => ConstructsMakerTarget.from(constraint, this.options.targetLanguage));
+    this.upgrade = this.options.upgrade;
   }
 
   private async generateTypeScript() {
-    const schema = await readSchema(this.targets);
+    const schema = await readSchema(this.targets, this.upgrade);
 
     const moduleTargets: ConstructsMakerModuleTarget[] = this.targets.filter(target => target instanceof ConstructsMakerModuleTarget) as ConstructsMakerModuleTarget[]
     for (const target of moduleTargets) {
@@ -262,12 +265,12 @@ export class ConstructsMaker {
           if (this.isGoTarget) {
             // TODO: check if needed for modules somehow
             // const targetType = target.isProvider ? 'provider' : 'module';
-            
+
             // jsii-srcmac will produce a folder inside this dir named after "packageName"
             // so this results in e.g. .gen/hashicorp/random
             const outdir = path.join(this.codeMakerOutdir, target.namespace ?? '');
 
-            opts.golang = {  
+            opts.golang = {
               outdir,
               moduleName: (await determineGoModuleName(outdir)), // e.g. `github.com/org/userproject/.gen/hashicorp`
               packageName: target.srcMakName // package will be named e.g. random for hashicorp/random
@@ -335,7 +338,7 @@ const report = async (target: ConstructsMakerTarget): Promise<void> => {
 /**
  * searches for the closest `go.mod` file and returns the nested go module name for `dir`
  * e.g. (/dir/.gen/) => cdk.tf/stack/.gen if the parent dir of .gen has a go.mod for "module cdk.tf/stack"
- * 
+ *
  * @param dir the directory to start the search from (searches upwards)
  * @returns the package name for `dir`
  * @throws an Error if no go.mod was found
@@ -369,6 +372,6 @@ export const determineGoModuleName = async (dir: string): Promise<string> => {
     previousDir = currentDir;
     currentDir = path.dirname(currentDir);
   } while (currentDir !== previousDir);
-  
+
   throw new Error(`Could not determine the root Go module name. No go.mod found in ${dir} and any parent directories`);
 }

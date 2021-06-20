@@ -172,7 +172,7 @@ export interface TerraformConfig {
 }
 
 
-export async function readSchema(targets: ConstructsMakerTarget[]) {
+export async function readSchema(targets: ConstructsMakerTarget[], upgrade: boolean) {
   const config: TerraformConfig = {
     terraform: {}
   }
@@ -202,7 +202,9 @@ export async function readSchema(targets: ConstructsMakerTarget[]) {
     const filePath = path.join(outdir, 'main.tf.json');
     await fs.writeFile(filePath, JSON.stringify(config));
 
-    await exec(terraformBinaryName, [ 'init' ], { cwd: outdir });
+    const tf_init_args = upgrade ? [ 'init', '-upgrade' ] : [ 'init' ];
+
+    await exec(terraformBinaryName, tf_init_args, { cwd: outdir });
     if (config.provider) {
       providerSchema = JSON.parse(await exec(terraformBinaryName, ['providers', 'schema', '-json'], { cwd: outdir })) as ProviderSchema;
     }

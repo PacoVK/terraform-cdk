@@ -11,6 +11,7 @@ const config = readConfigSync();
 interface Arguments {
   output: string;
   language: Language;
+  upgrade: boolean;
 }
 
 class Command implements yargs.CommandModule {
@@ -20,14 +21,15 @@ class Command implements yargs.CommandModule {
   public readonly builder = (args: yargs.Argv) => args
     .showHelpOnFail(true)
     .option('output', { default: config.codeMakerOutput, type: 'string', desc: 'Output directory for generated Constructs', alias: 'o' })
-    .option('language', { default: config.language, required: true, type: 'string', desc: 'Output programming language', alias: 'l', choices: LANGUAGES });
+    .option('language', { default: config.language, required: true, type: 'string', desc: 'Output programming language', alias: 'l', choices: LANGUAGES })
+    .option('upgrade', { default: false, required: false, type: 'boolean', desc: 'Upgrade'});
 
   public async handler(argv: any) {
     await displayVersionMessage()
     const args = argv as Arguments
     const providers = config.terraformProviders ?? [];
     const modules = config.terraformModules ?? [];
-    const { output, language } = args
+    const { output, language, upgrade } = args
 
     const constraints: TerraformDependencyConstraint[] = [...providers, ...modules]
 
@@ -36,7 +38,7 @@ class Command implements yargs.CommandModule {
       process.exit(1);
     }
 
-    await renderInk(React.createElement(Get, { codeMakerOutput: output, language: language, constraints }));
+    await renderInk(React.createElement(Get, { codeMakerOutput: output, language: language, upgrade: upgrade, constraints }));
   }
 }
 
