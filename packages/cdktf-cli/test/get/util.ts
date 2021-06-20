@@ -14,7 +14,8 @@ export function expectImportMatchSnapshot(constraint: TerraformDependencyConstra
       const maker = new ConstructsMaker({
         codeMakerOutput: workdir,
         outputJsii: jsiiPath,
-        targetLanguage: Language.TYPESCRIPT
+        targetLanguage: Language.TYPESCRIPT,
+        upgrade: false
       }, [constraint])
 
       await maker.generate()
@@ -39,19 +40,19 @@ export function expectModuleToMatchSnapshot(testName: string, testCategory: stri
       fixtureNames.forEach(fixtureName => {
         fs.copyFileSync(path.join(__dirname, testCategory, 'fixtures', fixtureName), path.join(curdir, 'module', fixtureName));
       });
-  
+
       const constraint = new TerraformModuleConstraint({
         source: './module',
         name: 'module',
         fqn: 'module'
       });
-  
+
       fs.mkdirSync('work');
       const workdir = path.join(curdir, 'work');
-    
-      const maker = new ConstructsMaker({codeMakerOutput: workdir, targetLanguage: Language.TYPESCRIPT}, [constraint])
+
+      const maker = new ConstructsMaker({codeMakerOutput: workdir, targetLanguage: Language.TYPESCRIPT, upgrade: false}, [constraint])
       await maker.generate();
-    
+
       const output = fs.readFileSync(path.join(workdir, 'modules/module.ts'), 'utf-8');
       expect(output).toMatchSnapshot();
     });

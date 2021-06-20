@@ -36,7 +36,7 @@ describe("readSchema", () => {
   it("generates a more complex schema", async () => {
     const module = new TerraformModuleConstraint('terraform-aws-modules/eks/aws@7.0.1')
     const targets = new ConstructsMakerModuleTarget(module, Language.TYPESCRIPT)
-    const result = await readSchema([targets], false)
+    const result = await readSchema([targets], true)
     expect(result).toMatchSnapshot();
   });
 
